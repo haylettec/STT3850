@@ -1,0 +1,19 @@
+---
+title: "Finally Got the Theme to Work!"
+author: "Elise Haylett"
+date: '`r format(Sys.time(), "%A, %B %d, %Y @ %I:%M %p")`'
+output: 
+  tufte::tufte_html: 
+    highlight: "tango"
+---
+
+```{r globaloptions}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = NA)
+```
+
+```{r loadpackages}
+library(tidyverse)
+library(kableExtra)
+library(tufte)
+```
+ 
