@@ -49,6 +49,21 @@ my_integers * my_logical #works because TRUE = 1, FALSE = 0
 #result will be a number and not a logical
 ```
 
+```{r}
+#you can add all vectors to a list
+my_list <- list(people_names, my_decimals, my_integers, my_logical)
+
+#dataframe is a special kind of list where all vectors have to be the same length... other characteristics make so where there are variables
+
+#ctrl + l clears the console
+
+
+#creating a dataframe
+
+my_dataframe <- data.frame(people_names, my_decimals, my_integers, my_logical)
+colnames(my_dataframe) <- c("name", "decimals", "integers", "logical")
+```
+
 
 
 
