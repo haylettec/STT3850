@@ -1,0 +1,55 @@
+---
+title: "class_notes_jan28"
+author: "Elise Haylett"
+date: "1/28/2020"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+spruceB <- read.csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Chihara/Spruce.csv"))
+
+library(readr)
+
+spruceT <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Chihara/Spruce.csv"))
+```
+
+```{r}
+class(spruceB)
+class(spruceT)
+class(spruceB$Competition)
+spruceB$Competition
+```
+
+```{r}
+glimpse(spruceT)
+```
+
+```{r}
+attributes(spruceB)
+```
+
+```{r}
+attributes(spruceT)
+```
+
+
+```{r}
+dim(spruceB)
+dim(spruceT)
+```
+
+```{r}
+#checking for complete data
+complete.cases(spruceB)
+sum(complete.cases(spruceB))
+
+
+
+#checking for missing data
+!complete.cases(spruceB)
+sum(!complete.cases(spruceB))
+```

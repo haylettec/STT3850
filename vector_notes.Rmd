@@ -108,9 +108,9 @@ seq(1, 100, by = .1)
 
 
 ```{r}
-rep(people_names, 2)
-rep(people_names, each = 2)
-rep(people_names, times - c(1,2,3))
+rep(people_names, 2) #to repeat in order they're in
+rep(people_names, each = 2) #to repeat each name x amount of times before the next
+rep(people_names, times = c(1,2,3)) #repeat 1, twice, 3 times
 
 ```
 
