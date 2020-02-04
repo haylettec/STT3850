@@ -1,0 +1,104 @@
+---
+title: "classwork"
+author: "Elise Haylett"
+date: "2/4/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, loading packages}
+library(tidyverse)
+```
+
+```{r, mpg}
+mileage <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/gasmileage.csv"))
+glimpse(mileage)
+
+```
+
+```{r, old faithful}
+oldfaithful <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/oldfaithful.csv"))
+glimpse(oldfaithful)
+
+```
+
+```{r, wells}
+wells <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Chihara/Bangladesh.csv"))
+glimpse(wells)
+
+```
+
+
+Histogram
+* modified bar plot
+* cut the x-axis into equally sized chunks/intervals/"bins"
+** there can be no gaps
+** must cover the whole range of the data
+* count how many data values are in each "bin"
+```{r, histograms}
+#uni modal data, follows a normal distribution
+ggplot(mileage, aes(x = mpg)) + 
+  geom_histogram()
+
+#bimodal
+ggplot(oldfaithful, aes(x = erupt_time)) + 
+  geom_histogram()
+
+#extremely right skewed data
+ggplot(wells, aes(x = Arsenic)) +
+  geom_histogram()
+```
+
+
+
+```{r, density plots}
+ggplot(mileage, aes(x = mpg)) + 
+  geom_density()
+
+ggplot(oldfaithful, aes(x = erupt_time)) + 
+  geom_density()
+
+ggplot(wells, aes(x = Arsenic)) + 
+  geom_density()
+
+```
+
+```{r, density over a histogram}
+ggplot(mileage, aes(x = mpg)) + 
+  geom_histogram(aes(y = ..density..)) + 
+  geom_density()
+
+ggplot(oldfaithful, aes(x = erupt_time)) + 
+  geom_histogram(aes(y = ..density..)) + 
+  geom_density()
+
+ggplot(wells, aes(x = Arsenic)) + 
+  geom_histogram(aes(y = ..density..)) + 
+  geom_density()
+
+```
+
+```{r, density with color}
+ggplot(mileage, aes(x = mpg)) + 
+  geom_histogram(aes(y = ..density..), bins = 10, color = "black") + 
+  geom_density(fill = "salmon", color = "salmon", alpha = 0.50)
+
+```
+
+```{r, stat_ecdf}
+ggplot(mileage, aes(x = mpg)) + 
+  stat_ecdf()
+
+ggplot(oldfaithful, aes(x = erupt_time)) + 
+  stat_ecdf()
+
+ggplot(wells, aes(x = Arsenic)) + 
+  stat_ecdf()
+
+
+```
+
+
