@@ -101,4 +101,55 @@ ggplot(wells, aes(x = Arsenic)) +
 
 ```
 
+#z-score
+z-score is a unitless magnitude that will tell us distance
+
+x-mu/sigma = zscore ---------------- mu = mean, sigma = standard deviation
+
+x-mu -> distance of point from mean
+sigma -> roughly the average distance of all points
+*units will cancel each other out
+
+# skewness and kurtosis
+skewness - third moment
+how you quantify skewness 
+in perfectly symmetric data, the data will cancel each other out and the third moment/skewness = 0
+kurotsis can only be positive
+kurtosis of a bell curve is 3
+kurtosis - fourth moment
+
+anything that affects the mean and the standard deviation will affect the four moments
+
+moment-based summaries in R
+- mean()
+- var()
+- sd()
+- skewness()
+- kurtosis(), in the `moments` package in r
+
+```{r, analysis on datasets}
+(mean(mileage$mpg))
+(sd(mileage$mpg))
+# on average, points are spread out about 2.42 mpg above and below the mean
+
+library(moments)
+(skewness(mileage$mpg))
+(kurtosis(mileage$mpg))
+```
+
+IQR = Q3 - Q1 --- range of the middle 50% of the data
+Range = max - min
+percentiles
+- Q1 = 25th percentile/quantile
+- median = 50th percentile/quantile
+- Q3 = 75th percentile/quantile
+
+
+
+
+
+
+
+
+
 
