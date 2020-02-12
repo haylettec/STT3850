@@ -8,30 +8,36 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+##Classwork {.tabset .tabset-pills}
+
+###Loading in the packages
 
 ```{r, loading packages}
 library(tidyverse)
 ```
 
+### Mileage Dataset
 ```{r, mpg}
 mileage <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/gasmileage.csv"))
 glimpse(mileage)
 
 ```
 
+### Geyser Dataset
 ```{r, old faithful}
 oldfaithful <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/oldfaithful.csv"))
 glimpse(oldfaithful)
 
 ```
 
+### Wells Dataset
 ```{r, wells}
 wells <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Chihara/Bangladesh.csv"))
 glimpse(wells)
 
 ```
 
-
+### Histograms
 Histogram
 * modified bar plot
 * cut the x-axis into equally sized chunks/intervals/"bins"
@@ -52,7 +58,7 @@ ggplot(wells, aes(x = Arsenic)) +
   geom_histogram()
 ```
 
-
+### Density Plots
 
 ```{r, density plots}
 ggplot(mileage, aes(x = mpg)) + 
@@ -88,6 +94,8 @@ ggplot(mileage, aes(x = mpg)) +
 
 ```
 
+### Stat_ecdf
+
 ```{r, stat_ecdf}
 ggplot(mileage, aes(x = mpg)) + 
   stat_ecdf()
@@ -101,31 +109,40 @@ ggplot(wells, aes(x = Arsenic)) +
 
 ```
 
-#z-score
-z-score is a unitless magnitude that will tell us distance
 
-x-mu/sigma = zscore ---------------- mu = mean, sigma = standard deviation
+### Z-score
 
-x-mu -> distance of point from mean
-sigma -> roughly the average distance of all points
-*units will cancel each other out
+> Z-score
+* Z-score is a unitless magnitude that will tell us distance
 
-# skewness and kurtosis
-skewness - third moment
-how you quantify skewness 
-in perfectly symmetric data, the data will cancel each other out and the third moment/skewness = 0
-kurotsis can only be positive
-kurtosis of a bell curve is 3
-kurtosis - fourth moment
+$$\frac{x - \mu}{\sigma} = z-score,$$
+* $\mu$ = mean
+* $\sigma$ = sd
+* $x-\mu$ -> distance of point from mean
+* $\sigma$ -> roughly the average distance of all points
+  + note: units will cancel each other out
+
+
+
+### Skewness and kurtosis
+
+> Skewness and kurtosis
+
+* skewness - third moment
+* how you quantify skewness: 
+** in perfectly symmetric data, the data will cancel each other out and the third moment/skewness = 0
+* kurotsis can only be positive
+* kurtosis of a bell curve is 3
+* kurtosis - fourth moment
 
 anything that affects the mean and the standard deviation will affect the four moments
 
-moment-based summaries in R
-- mean()
-- var()
-- sd()
-- skewness()
-- kurtosis(), in the `moments` package in r
+* Moment-based summaries in R
+    + mean()
+    + var()
+    + sd()
+    + skewness()
+    + kurtosis(), in the `moments` package in r
 
 ```{r, analysis on datasets}
 (mean(mileage$mpg))
@@ -137,15 +154,103 @@ library(moments)
 (kurtosis(mileage$mpg))
 ```
 
-IQR = Q3 - Q1 --- range of the middle 50% of the data
-Range = max - min
-percentiles
-- Q1 = 25th percentile/quantile
-- median = 50th percentile/quantile
-- Q3 = 75th percentile/quantile
 
 
 
+### 5 number summary
+
+> 5-Number Summary
+
+* minimum, Q1, median, Q3, maxium
+* IQR = Q3 - Q1 --- range of the middle 50% of the data
+* Range = max - min
+* Percentiles
+** Q1 = 25th percentile/quantile
+** Median = 50th percentile/quantile
+** Q3 = 75th percentile/quantile
+
+```{r}
+fivenum(mileage$mpg)
+fivenum(mileage$mpg)[1]
+range(mileage$mpg)
+diff(range(mileage$mpg))
+
+quantile(mileage$mpg, c(.25, .5, .75))
+quantile(mileage$mpg, seq(.1, .9, .1)) 
+
+#quartiles by 4 (.25, .5, .75)
+#quintiles by 5 (.20, .40, .60, .80)
+#deciles by 4 (.10, .20, .30, .40,..., .90)
+```
+
+```{r}
+xbar <- mean(mileage$mpg)
+s <- sd(mileage$mpg)
+
+mileage <- mileage %>% 
+  mutate(zscores = (mpg - xbar)/s,
+         kpl = 0.43 * mpg,
+         zscoresm = (kpl - mean(mileage$kpl))/sd(mileage$kpl)
+  )
+head(mileage)
+```
+
+```{r}
+sort(mileage$mpg) #shows we only have two outliers: the min and the max
+boxplot.stats(mileage$mpg) #output is a list since it has $ in front of names
+boxplot.stats(sort(mileage$mpg)) #sorts in ascending order, only shows outliers
+
+#plotting the graphs
+boxplot(mileage$mpg)
+
+ggplot(mileage, aes(y = mpg)) + 
+  geom_boxplot() +
+  coord_flip()
+```
+
+```{r}
+wells %>% 
+  summarize(lower_fence = fivenum(Arsenic)[2] - 1.5 * IQR(Arsenic),
+            upper_fence = fivenum(Arsenic)[4] + 1.5 * IQR(Arsenic))
+
+boxplot.stats(sort(wells$Arsenic))
+            
+
+ggplot(wells, aes(y = Arsenic)) +
+  geom_boxplot() +
+  labs(title = "arsenic levels from a sample of wells in bangledesh",
+       y = "arsenic level in ppm") + 
+  coord_flip()
+```
+
+```{r}
+oldfaithful %>% 
+  summarize(lower_fence = fivenum(erupt_time)[2] - 1.5 * IQR(erupt_time),
+            upper_fence = fivenum(erupt_time)[4] + 1.5 * IQR(erupt_time))
+
+boxplot.stats(sort(oldfaithful$erupt_time))
+            
+
+ggplot(oldfaithful, aes(y = erupt_time)) +
+  geom_boxplot(fill = "lightblue") +
+  labs(title = "old faithful eruption time of geyser",
+       y = "eruption time in seconds") + 
+  coord_flip()
+```
+
+```{r}
+library(nycflights13)
+library(ggplot2)
+library(dplyr)
+
+gapminder <- gapminder
+
+ggplot(gapminder, aes(x = gdpPercap, y = lifeExp, col = continent)) +
+  geom_point(aes(size = pop)) + 
+  scale_x_continuous("GDP per capita", limits = c(0, 50000)) +
+  scale_y_continuous("Life expectancy", limits = c(40, 80))
+  
+```
 
 
 
