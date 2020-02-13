@@ -1,0 +1,67 @@
+---
+title: "Think Pair Share Week 5"
+author: "Elise Haylett"
+date: "2/13/2020"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+```
+
+1) Exercise 2.2. Make a data frame with the eight numbers. Use mutate to perform the transformation and summarize to compute the means and medians. Paste your code and answer the question about whether the two means and two medians are equal. Be sure to state the summary values in your response.
+```{r}
+original <- c(1, 2, 4, 5, 6, 8, 11, 15)
+orig <- data.frame(original)
+
+orig %>% 
+  mutate(squareroot = sqrt(original)) %>% 
+  summarize(meanOrig = mean(original),
+            medianOrig = median(original), 
+            meanSqrt = mean(squareroot),
+            medianSqrt = median(squareroot))
+
+# original set of numbers, mean = 6.5 and median = 5.5
+# square root of the numbers, mean = 2.39 and median = 2.34
+
+# The mean and median of the two sets of number are not the same
+
+```
+
+
+2) Exercise 2.6 (c) and (d). Use ggplot2 to make the boxplots and the quantile function to compute the quantiles. Paste the code and write your three comparative statements about the distributions. You may use both the graphical and quantitative results from (c) and (d) to make your comparisons.
+```{r}
+recidivism <- read_csv("3-Year_Recidivism_for_Offenders_Released_from_Prison_in_Iowa.csv")
+
+recidivism <- recidivism %>% 
+  rename(offense = "Offense Type",
+         days = "Days to Return") %>% 
+  group_by(offense)
+
+ggplot(recidivism, aes(x = offense, y = days)) +
+  geom_boxplot(aes(fill = offense)) +
+  theme_bw()
+
+#1 - The distributions of days of recidivism for each of the offenses seem to have similar interquartile ranges.
+#2 - The median of the distributions of days to recidivism for each of the offenses are roughly between 300 and 450 days.
+#3 - For each of the offenses, the third quartile for days of recidivism is roughly similar (between 600 and 750 days).
+
+recidivism %>% 
+  group_by(offense) %>% 
+  summarize(firstQ = fivenum(days)[2], 
+            secondQ = fivenum(days)[3],
+            thirdQ = fivenum(days)[4])
+
+
+quantile(recidivism$days, na.rm = TRUE)
+```
+
+
+3) How could you design a simulation to help test/solve Exercise 2.9? You do not need to write any code, just describe in words what the process or steps might be.
+
+To help solve Exercise 2.9, I would create an R function to help produce the output for the exercise.
+
+
+
