@@ -1,0 +1,79 @@
+---
+title: "Normal Distribution Introduction"
+author: "Elise Haylett"
+date: "2/18/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+
+# set the parameters of the normal model
+mu    <- 100
+sigma <- 15
+
+ggplot(NULL, aes((mu - 4 * sigma):(mu + 4 * sigma))) + 
+  stat_function(fun = dnorm, args = list(mu, sigma)) +
+  scale_x_continuous(breaks = seq(mu - (4 * sigma),  
+                                  mu + (4 * sigma), sigma)) +
+  labs(title = "Standard IQ Tests", x = " WAIS scores", y = "density") + 
+  theme_linedraw()
+
+```
+
+
+```{r, #1 from slides --- empirical rule}
+mu    <- 0
+sigma <- 1
+ggplot(NULL, aes((mu - 4 * sigma):(mu + 4 * sigma))) + 
+  stat_function(fun = pnorm, args = list(mu, sigma)) +
+  scale_x_continuous(breaks = seq(mu - (4 * sigma),  
+                                  mu + (4 * sigma), sigma)) +
+  labs(x = "x", y = "F(x)") + theme_linedraw()
+
+pnorm(-3:3, 0, 1)
+
+pnorm(-3:3) #default is mean = 0, sd = 1
+
+```
+
+```{r, #3 from slides --- empirical rule}
+pnorm(1) - pnorm(-1) # between 1 sd
+pnorm(2) - pnorm(-2) # between 2 sds
+pnorm(3) - pnorm(-3) # between 3 sds
+pnorm(2/3) - pnorm(-2/3) # between 2/3 sds
+
+# vectorizing calculations
+pnorm(1:3) - pnorm(-1:-3)
+
+
+```
+
+```{r, #4 from slides --- empirical rule}
+
+pnorm(1.5) - pnorm(-2)
+qnorm(.45)
+
+```
+
+```{r}
+#finding the area
+qnorm(.25)
+qnorm(c(.25,.5,.75))
+
+#finding the top 2% WAIS
+qnorm(.98, 100, 15)
+qnorm(.02, 100, 15, lower.tail = FALSE)
+
+#Cattell
+qnorm(.98, 100, 24)
+qnorm(.02, 100, 24, lower.tail = FALSE)
+
+#finding the middle 68%
+qnorm(c(.16, .84))
+```
+

@@ -1,0 +1,126 @@
+---
+title: "class notes"
+author: "Elise Haylett"
+date: "2/25/2020"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+
+parent_hgts <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/galtonparentheights.csv"))
+
+# mean of mother's height
+mom_xbar <- mean(parent_hgts$Mother)
+mom_s <- sd(parent_hgts$Mother)
+
+#mean of father's height
+dad_xbar <- mean(parent_hgts$Father)
+dad_s <- sd(parent_hgts$Father)
+```
+```{r, mothers}
+# just the model by itself
+ggplot(parent_hgts, aes(x = Mother)) + 
+  geom_density() +
+  scale_x_continuous(breaks = seq(mom_xbar - (4 * mom_s),  
+                                  mom_xbar + (4 * mom_s), mom_s))
+# perfect theoretical model
+ggplot(parent_hgts, aes(x = Mother)) +
+  stat_function(fun = dnorm, 
+                args = list(mom_xbar, mom_s),   
+                color = "salmon") +
+  scale_x_continuous(breaks = seq(mom_xbar - (4 * mom_s),  
+                                  mom_xbar + (4 * mom_s), mom_s))
+
+# them together
+ggplot(parent_hgts, aes(x = Mother)) + 
+  geom_density() +
+  stat_function(fun = dnorm, 
+                args = list(mom_xbar, mom_sd),   
+                color = "salmon") +
+  scale_x_continuous(breaks = seq(mom_xbar - (4 * mom_s),  
+                                  mom_xbar + (4 * mom_s), mom_s))
+```
+
+
+```{r, fathers}
+# just the model by itself
+ggplot(parent_hgts, aes(x = Father)) + 
+  geom_density() +
+  scale_x_continuous(breaks = seq(dad_xbar - (4 * dad_s),  
+                                  dad_xbar + (4 * dad_s), dad_s))
+# perfect theoretical model
+ggplot(parent_hgts, aes(x = Father)) +
+  stat_function(fun = dnorm, 
+                args = list(dad_xbar, dad_s),   
+                color = "blue") +
+  scale_x_continuous(breaks = seq(dad_xbar - (4 * dad_s),  
+                                  dad_xbar + (4 * dad_s), dad_s))
+
+# them together
+ggplot(parent_hgts, aes(x = Father)) + 
+  geom_density() +
+  stat_function(fun = dnorm, 
+                args = list(dad_xbar, dad_s),   
+                color = "blue") +
+  scale_x_continuous(breaks = seq(dad_xbar - (4 * dad_s),  
+                                  dad_xbar + (4 * dad_s), dad_s))
+```
+
+
+```{r, empirical cdf}
+ggplot(parent_hgts, aes(x = Mother)) + 
+  stat_ecdf() +
+  stat_function(fun = pnorm, 
+                args = list(mom_xbar, mom_s), 
+                color = "salmon")
+
+ggplot(parent_hgts, aes(x = Father)) + 
+  stat_ecdf() +
+  stat_function(fun = pnorm, 
+                args = list(dad_xbar, dad_s), 
+                color = "blue")
+```
+
+```{r, qq plot}
+ggplot(parent_hgts, aes(sample = Mother)) + 
+  stat_qq() +
+  stat_qq_line(color = "salmon")
+
+```
+
+```{r, kurtosis}
+# kurtosis for the mothers
+library(moments)
+skewK <- tibble(statistic = c("Skewness", "Kurtosis", "Excess K"),
+                theory = c(0, 3, 0),
+                data   = round(c(skewness(parent_hgts$Mother), 
+                                 kurtosis(parent_hgts$Mother), 
+                                 kurtosis(parent_hgts$Mother) - 3), 
+                               2))
+print.data.frame(skewK, row.names = FALSE)
+
+# kurtosis for the mother
+library(moments)
+skewK <- tibble(statistic = c("Skewness", "Kurtosis", "Excess K"),
+                theory = c(0, 3, 0),
+                data   = round(c(skewness(parent_hgts$Father), 
+                                 kurtosis(parent_hgts$Father), 
+                                 kurtosis(parent_hgts$Father) - 3), 
+                               2))
+print.data.frame(skewK, row.names = FALSE)
+```
+
+to assess normality do these 4 plots ^^
+
+
+
+
+
+
+
+
+
+
+
+
