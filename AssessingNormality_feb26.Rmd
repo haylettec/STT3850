@@ -1,0 +1,262 @@
+---
+title: "Assessing Normality Practice"
+author: "Elise Haylett"
+date: '`r format(Sys.time(), "%A, %B %d, %Y @ %I:%M %p")`'
+output: 
+  html_document: 
+    code_folding: hide
+    theme: yeti
+    highlight: textmate
+---
+
+```{r globaloptions}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = NA)
+```
+
+```{r loadpackages}
+library(tidyverse)
+library(moments)
+```
+
+***
+#### **Gas Mileage**
+
+```{r}
+mileage <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/gasmileage.csv")
+```
+
+```{r}
+# Normality Assessment Here
+mpg_xbar <- mean(mileage$mpg)
+mpg_s <- sd(mileage$mpg)
+
+
+# perfect normal distribution
+ggplot(mileage, aes(x = mpg)) + 
+  geom_density() +
+  stat_function(fun = dnorm, 
+                args = list(mpg_xbar, mpg_s),   
+                color = "purple") +
+  scale_x_continuous(breaks = seq(mpg_xbar - (4 * mpg_s),  
+                                  mpg_xbar + (4 * mpg_s), mpg_s))
+
+
+# empirical cdf
+ggplot(mileage, aes(x = mpg)) + 
+  stat_ecdf() +
+  stat_function(fun = pnorm, 
+                args = list(mpg_xbar, mpg_s), 
+                color = "purple")
+
+
+# qqplot
+ggplot(mileage, aes(sample = mpg)) + 
+  stat_qq(alpha = .5) +
+  stat_qq_line(color = "purple")
+
+
+# skewness and kutosis
+skewK_mpg <- tibble(statistic = c("Skewness", "Kurtosis", "Excess K"),
+                theory = c(0, 3, 0),
+                data   = round(c(skewness(mileage$mpg), 
+                                 kurtosis(mileage$mpg), 
+                                 kurtosis(mileage$mpg) - 3), 
+                               2))
+print.data.frame(skewK_mpg, row.names = FALSE)
+
+
+```
+
+* Looking at the normal curve --> Data is leptokurtic because the peak of the data density is taller than the peak of the theoretical normal curve (pointy)
+
+* Stat_ecdf --> deviation from the normal S-curve * SHOW SOME SYSTEMATIC DEVIATION FROM NORMAL
+
+* QQ plot --> does "tilde" thing in the middle * SHOW SOME SYSTEMATIC DEVIATION FROM NORMAL
+
+* The skewness and kurtosis calculations confirm this. Skewenss is almost 0 (0.05) and it has some excess kurtosis (0/67)
+
+***
+
+#### **Old Faithful**
+
+```{r}
+geyser <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/oldfaithful.csv")
+```
+
+```{r}
+# Normality Assessment Here
+ET_xbar <- mean(geyser$erupt_time)
+ET_s <- sd(geyser$erupt_time)
+
+
+# perfect normal distribution
+ggplot(geyser, aes(x = erupt_time)) + 
+  geom_density() +
+  stat_function(fun = dnorm, 
+                args = list(ET_xbar, ET_s),   
+                color = "orange") +
+  scale_x_continuous(breaks = seq(ET_xbar - (4 * ET_s),  
+                                  ET_xbar + (4 * ET_s), ET_s))
+
+
+# empirical cdf
+ggplot(geyser, aes(x = erupt_time)) + 
+  stat_ecdf() +
+  stat_function(fun = pnorm, 
+                args = list(ET_xbar, ET_s), 
+                color = "orange")
+
+
+# qqplot
+ggplot(geyser, aes(sample = erupt_time)) + 
+  stat_qq(alpha = .5) +
+  stat_qq_line(color = "orange")
+
+
+# skewness and kutosis
+skewK_ET <- tibble(statistic = c("Skewness", "Kurtosis", "Excess K"),
+                theory = c(0, 3, 0),
+                data   = round(c(skewness(geyser$erupt_time), 
+                                 kurtosis(geyser$erupt_time), 
+                                 kurtosis(geyser$erupt_time) - 3), 
+                               2))
+print.data.frame(skewK_ET, row.names = FALSE)
+```
+
+* Clearly bimodal
+
+* Much bigger tilde in the data
+
+* All plots show substantial deviation from the normal model (describe a little bit how, if you can)
+
+* Difference between facet_wrap --> don't have to specify dimensions; facet_grid --> specifies dimensions
+
+### *Creating another variable*
+
+```{r creating a new variable}
+# split the bimodal plot in half
+geyser <- geyser %>% 
+  mutate(erupt_category = ifelse(erupt_time < 3, "short", "long"))
+
+# perfect normal distribution
+ggplot(geyser, aes(x = erupt_time)) + 
+  geom_density() +
+  facet_wrap(~ erupt_category)
+
+
+# empirical cdf
+ggplot(geyser, aes(x = erupt_time)) + 
+  stat_ecdf() +
+  facet_wrap(~ erupt_category)
+
+
+# qqplot
+ggplot(geyser, aes(sample = erupt_time)) + 
+  stat_qq(alpha = .5) +
+  stat_qq_line(color = "orange") +
+  facet_wrap(~ erupt_category)
+
+```
+
+
+
+
+***
+
+#### **Bangladesh Wells**
+
+```{r}
+wells <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Chihara/Bangladesh.csv")
+
+```
+
+```{r}
+# Normality Assessment Here
+ars_xbar <- mean(wells$Arsenic)
+ars_s <- sd(wells$Arsenic)
+
+
+# perfect normal distribution
+ggplot(wells, aes(x = Arsenic)) + 
+  geom_density() +
+  stat_function(fun = dnorm, 
+                args = list(ars_xbar, ars_s),   
+                color = "dark green") +
+  scale_x_continuous(breaks = seq(ars_xbar - (4 * ars_s),  
+                                  ars_xbar + (4 * ars_s), ars_s))
+
+
+# empirical cdf
+ggplot(wells, aes(x = Arsenic)) + 
+  stat_ecdf() +
+  stat_function(fun = pnorm, 
+                args = list(ars_xbar, ars_s), 
+                color = "dark green")
+
+
+# qqplot
+ggplot(wells, aes(sample = Arsenic)) + 
+  stat_qq(alpha = .5) +
+  stat_qq_line(color = "dark green")
+
+
+# skewness and kutosis
+skewK_ars <- tibble(statistic = c("Skewness", "Kurtosis", "Excess K"),
+                theory = c(0, 3, 0),
+                data   = round(c(skewness(wells$Arsenic), 
+                                 kurtosis(wells$Arsenic), 
+                                 kurtosis(wells$Arsenic) - 3), 
+                               2))
+print.data.frame(skewK_ars, row.names = FALSE)
+
+```
+* Data is right skewed and leptokurtic
+
+* Only seeing the top half of the ecdf --> getting cut off right at inflection point
+
+* QQ Plot shows that a right skewed distribution produces a concave up shape
+
+***
+
+#### **Semmelweiss**
+
+```{r}
+handwashing_start <- as.Date("1847-06-01")
+data <- "https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/semmelweismonthly.csv"
+by_month <- read_csv(file = url(data)) %>% 
+  mutate(mortality = 100 * deaths / births,
+         handwashing = ifelse(date < handwashing_start, "dirty", "washed"))
+```
+
+```{r}
+# Normality Assessment Here
+```
+
+```{r}
+# Normality Assessment by Groups Here, 
+#before and after hand washing
+```
+
+***
+
+#### **Oscar Ages**
+
+```{r}
+oscar <- read_csv("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/oscarages.csv")
+```
+
+```{r}
+# Normality Assessment Here
+```
+
+```{r}
+# Normality Assessment by Groups Here
+# win
+
+```
+
+
+***
+```{r}
+sessionInfo()
+```
