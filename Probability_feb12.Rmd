@@ -1,5 +1,5 @@
 ---
-title: "class notes"
+title: "Probability"
 author: "Elise Haylett"
 date: "2/12/2020"
 output: html_document
@@ -41,7 +41,7 @@ choose(4, 1)
 choose(4, 2)
 choose(4, 3)
 choose(4, 4)
-choose(4, 5)
+choose(10000, 1)
 ```
 
 ```{r}

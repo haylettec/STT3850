@@ -1,5 +1,5 @@
 ---
-title: "class notes"
+title: "Theoretical plots"
 author: "Elise Haylett"
 date: "2/25/2020"
 output: html_document

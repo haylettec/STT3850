@@ -1,0 +1,256 @@
+---
+title: "Binomial Distribution Quiz"
+author: "Elise Haylett"
+date: "2/28/2020"
+output: html_document
+---
+options(scipen=999)
+# X ~ N(mu, sd^2)
+```{r, # X ~ N(mu, sd^2)}
+library(tibble)
+# creating the mass function
+n <- 10
+p <- .01
+q <- 1 - p
+bin_pmf <- tibble(x = 0:n, probability = dbinom(x, n, p))
+print.data.frame(bin_pmf, digits = 4, row.names = FALSE)
+
+# E(X)
+n * p
+
+#Var(X)
+n * p * q
+
+#SD(X)
+sqrt(n * p * q)
+```
+
+
+# Plane problem 
+```{r}
+# On average, how many of the 125 ticketed passengers will not show up for their flight?
+pl_n <- 125
+pl_p <- .10
+pl_q <- 1 - pl_p
+
+#E(X) - plane
+pl_n * pl_p
+
+# What is the probability that every person who bought a ticket shows up on the day of the flight?
+dbinom(0, 125, .1)
+
+# What is the probability that every ticketed passenger who shows up on the day of the flight can be seated?
+1 - pbinom(4, 125, .1)
+
+# What is the probability that the airline has to offer alternative arrangements to more than one person?
+pbinom(3, 125, .1)
+
+# What is the probability that the plane departs with between ten and twenty empty seats (inclusive)?
+pbinom(25, 125, .1) - pbinom(14, 125, .1)
+```
+
+
+# Phone Problem
+```{r}
+ph_n <- 10
+ph_p <- .40 # occupied
+ph_q <- 1 - .40 # not occupied
+
+# What is the probability that the phone lines are occupied for all ten calls?
+dbinom(10, 10, .60)
+
+# What is the probability that the phone lines are free for all ten calls?
+dbinom(0, 10, .40)
+
+# How many calls would you expect to get a busy signal? #E(X)
+ph_n * ph_p
+
+# What is the probability that the phone lines are not occupied for at least 1 call?
+1 - pbinom(0, 10, .60)
+
+# Given the typical daily call volume, the support center staff expects 500 calls per day to get a busy signal. How many calls are there in a typical day?
+500 / ph_p
+```
+
+
+# Loans problem
+```{r}
+loan_n <- 250
+loan_p <- .07 # will not make payments on time
+loan_q <- 1 - loan_p # will make payments on time
+
+# Among the 250 loan recipients, how many would you expect not to pay on time?
+250 * loan_p
+
+# What is the probability that more than 10% of the loan recipients will not pay on time?
+pbinom(25, 250, .07, F)
+
+# What is the probability that between 7% ± 3% (inclusive) of the loan recipients will not pay on time?
+.10 * 250
+.04 * 250
+pbinom(25, 250, .07) - pbinom(9, 250, .07)
+
+# What is the probability that fewer than 4% of the loan recipients will not pay on time?
+.04 * 250
+pbinom(9, 250, .07)
+```
+
+
+# Quiz
+```{r}
+qn <- 10
+qp <- .25
+qq <- 1 - qp
+
+# How many questions should you expect to get right?
+10 * qp
+
+# What is the probability you get exactly the minimum passing score?
+dbinom(6, 10, .25)
+
+# What is the probability that you pass the quiz?
+1 - pbinom(5, 10, .25)
+
+# Suppose you can reliably identify and eliminate one of the incorrect options on each question before guessing. What is the probability that you pass the quiz?
+1 - pbinom(5, 10, 1/3)
+
+# Suppose many, many students guess on the same kind of quiz. Seventy-five percent of the time, a student who is just guessing will get what score (or below) out of 10?
+qbinom(.75, 10, .25) # looking for the percentile
+
+# Seventy-five percent of the time, students who are just guessing but can reliably eliminate one choice beforehand will get what score (or below) out of 10?
+qbinom(.75, 10, 1/3)
+
+```
+
+
+# Digital Communication
+```{r}
+dign <- 1000
+digp <- .001
+digq <- 1 - .001
+
+# What is E(X)?
+dign * digp
+
+# What is P(X = 1)?
+dbinom(1, 1000, .001)
+
+# What is P(X ≤ 1)?
+pbinom(1, 1000, .001)
+
+# What is P(X > 1)?
+1 - pbinom(1, 1000, .001)
+
+# If P(X ≤ c) = 99%, what is the value of c?
+qbinom(.99, 1000, .001)
+```
+
+
+# Sample Problem
+```{r}
+samn <- 20
+samp <- .01
+samq <- 1 - samp
+
+# What is SD(X)?
+samSD <- sqrt(samn * samp * samq)
+
+# What is the smallest number of "need additional work" parts that the inspector has to count in one sample before he shuts down the machine and checks for a dull punch?
+samMean <- samn * samp
+
+samMean + (3 * samSD)
+
+# When the punch is sufficiently sharp, what is the probability that X exceeds its mean plus three standard deviations?
+1 - pbinom(1, 20, .01)
+
+# If the punch gets dull and the "needs additional work" percentage increases to 5% as a result, what is the probability that X exceeds 1?
+1 - pbinom(1, 20, .05)
+
+# If the punch gets dull and the "needs additional work" percentage increases to 5% as a result, what is the probability that X exceeds 1 in at least one of the next five samples?
+1 -  pbinom(0, 5, pbinom(1, 20, .05, F))
+```
+
+
+# Germination Problem
+```{r}
+gp <- .92
+gq <- 1 - gp
+
+# If I buy a packet of 50 seeds, how many should I expect to sprout?
+50 * gp
+
+# If I consider all the packets of 50 seeds, what is the standard deviation of the number of seeds that will sprout?
+sqrt(50 * gp * gq)
+
+# If I plant 10 seeds from my packet of fifty, what is the probability that exactly 8 sprout?
+dbinom(8, 10, .92)
+
+# If I plant 10 seeds from my packet of fifty, what is the probability that at least 8 sprout?
+pbinom(7, 10, .92, F)
+
+# If I plant 10 seeds from my packet of fifty, what is the probability that between 5 and 8 (inclusive) sprout?
+pbinom(8, 10, .92) - pbinom(4, 10, .92)
+
+# A nursery buys bush bean seeds in bulk. If they plant exactly 1000 seeds, how many should they expect to sprout?
+1000 * gp
+
+# If I consider all bulk lots of 1000 seeds, what is the standard deviation of the number of seeds that will sprout?
+sqrt(1000 * gp * gq)
+
+# A nursery buys bush bean seeds in bulk. If they plant exactly 1000 seeds, what is the probability that they get more than 850 but fewer than 950 sprouts?
+pbinom(949, 1000, .92) - pbinom(850, 1000, .92)
+
+# A nursery buys bush bean seeds in bulk. If they plant exactly 1000 seeds, what is the probability that between 90% and 95% (not inclusive) of the seeds sprout?
+1000 * .90
+1000 * .95
+
+pbinom(949, 1000, .92) - pbinom(900, 1000, .92)
+
+# A nursery buys bush bean seeds in bulk. If they plant exactly 1000 seeds, they will have a 5% chance of getting less or equal to what number of sprouted plants?
+qbinom(.05, 1000, .92)
+
+# A nursery buys bush bean seeds in bulk. How many seeds should they plant if they want to have only a 5% chance of getting less than or equal to 1000 sprouted plants?
+# qbinom(.05, n, .92) = 1000
+
+# We can solve for n by trial and error or use a loop in R.
+gn <- 1
+repeat
+{
+  yield <- qbinom(.05, n, .92);
+  if (yield >= 1000) break;
+  gn <- gn + 1;
+}
+gn
+
+```
+
+
+# Pepsi
+```{r}
+pepn <- 6
+pepp <- .10
+pepq <- 1 - pepp
+
+# You buy one six-pack. What is the probability that you win something?
+1 - pbinom(0, 6, .10)
+
+# You buy one six-pack. What is the probability that you get 1 or 2 winning caps?
+dbinom(1, 6, .10) + dbinom(2, 6, .10)
+
+# You buy two six-packs. What is the probability that you win something?
+1 - pbinom(0, 12, .10)
+
+# How many six-packs would you have to buy to have at least a 90% chance of winning something?
+pn <- 1
+repeat
+{
+prob <- dbinom(0, n, .1);
+if (prob <= 0.10) break;
+pn <- pn + 1;
+}
+pn
+
+```
+
+
+

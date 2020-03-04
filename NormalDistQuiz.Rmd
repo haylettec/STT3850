@@ -1,0 +1,145 @@
+---
+title: "Normal Distribution Quiz"
+author: "Elise Haylett"
+date: "2/29/2020"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+mu <- 0
+sigma <- 1
+
+# If X ~ N(0,1), what is P(X < 1.5)?
+pnorm(1.5, 0, 1)
+
+# If X ~ N(0,1), what value of x satisfies P(X ≥ x) = 0.35?
+qnorm(.35, 0, 1, lower.tail = FALSE)
+qnorm(.65)
+
+# If X ~ N(0,1), what is P(-2.0 < X < 1.5)?
+pnorm(1.5) - pnorm(-2)
+
+# If X ~ N(0,1), what is P(X < -1.75 or X > 1.75)?
+pnorm(-1.75) + pnorm(1.75, lower.tail=F)
+
+# If X ~ N(0,1), what value of x satisfies P(X < x) = 0.45?
+qnorm(.45)
+
+# If X ~ N(0,1), what value of x satisfies P(X ≥ x) = 0.05?
+qnorm(.05, lower.tail = FALSE)
+qnorm(.95)
+
+# The middle 50% of the area under a standard normal curve lies between the values ± 
+(qnorm(.75) - qnorm(.25))/2
+
+# A random variable X is normally distributed with μ = 5 and P(X < 2) = 0.00135. What is σ?
+qnorm(.00135, 5, 1)
+pnorm(2, 5, 1)
+
+# A random variable X is normally distributed with μ = 10 and P(X > 16) = 25%. What is σ?
+10 + qnorm(.25)
+```
+
+
+# College Bookstore
+```{r}
+c_mu <- 350
+c_s <- 100
+
+# What proportion of students pays $250 or less for books?
+pnorm(250, 350, 100)
+
+# What proportion of students pays $550 or more for books?
+pnorm(550, 350, 100, lower.tail = FALSE)
+
+# What is the probability that a randomly selected student pays between $250 and $550 for books?
+pnorm(550, 350, 100) - pnorm(250, 350, 100)
+
+# The bottom 5% of the distribution spends at most ___ dollars?
+qnorm(.05, 350, 100)
+
+# The top 5% of the distribution spends at least
+qnorm(.05, 350, 100, lower.tail = FALSE)
+qnorm(.95, 350, 100)
+
+```
+
+
+# Tarantulas
+```{r}
+t_mu <- 18.14
+t_s <- 1.76
+
+# What proportion of adult males have a carapace length between 16 mm and 17 mm?
+pnorm(17, 18.14, 1.76) - pnorm(16, 18.14, 1.76)
+
+# Half of adult males have a carapace length that is at least ___ mm long?
+qnorm(.50, 18.14, 1.76, lower.tail = FALSE)
+
+# The largest 25% of adult males have a carapace length at least ___ mm long.
+qnorm(.25, 18.14, 1.76, lower.tail = FALSE)
+
+```
+
+
+# Temperature
+```{r}
+temp_mu <- 36
+temp_s <- 3
+
+# According to the model, the midday temperature of the coolest 20% of days should be less than or equal to what temperature?
+qnorm(.20, 36, 3)
+
+# According to the model, the midday temperature of the hottest 30% of days should be greater than or equal to what temperature?
+qnorm(.30, 36, 3, lower.tail = FALSE)
+
+# According to the model, how many June days should have a midday temperature between 39 °C and 42 °C?
+(pnorm(42, 36, 3) - pnorm(39, 36, 3)) * 30
+```
+
+
+
+# Tea Company
+```{r}
+tea_mu <- 254
+tea_s <- 2.5
+
+# Because of manufacturing variability, some tea bags weigh less than 250 grams. What proportion of tea bags are underweight?
+pnorm(250, 254, 2.5)
+
+# Because of manufacturing variability, some tea bags are underweight. One way to decrease the number of underweight bags would be to increase the amount of tea that is put in each bag. Given a fixed standard deviation, what would the distribution mean have to be so that fewer than 1% of the bags are underweight?
+means <- seq(254, 256, by=0.1)
+probs <- pnorm(250, means, 2.5)
+data.frame(means, probs)
+
+# Because of manufacturing variability, some tea bags are underweight. Adding more tea to each bag to decrease the percentage of underweight bags is potentially expensive in the long run, so another solution to decrease the variability in the manufacturing process. What would the new standard deviation have to be so that fewer than 1% of the bags are underweight?
+sd <- seq(1.5, 2.5, by=0.1)
+probs <- pnorm(250, 254, sd)
+data.frame(sd, probs)
+```
+
+
+# July
+```{r}
+# The total July rainfall for a given area can be modeled by a normal distribution. The middle ~95% of historical rainfall amounts are between 7 mm and 13 mm. The average rainfall is ___ mm.
+(13 - 7) / 4
+
+july_mu <- 7 + 2 * 1.5
+
+# The total July rainfall for a given area can be modeled by a normal distribution. The middle ~95% of historical rainfall amounts are between 7 mm and 13 mm. The standard deviation of rainfall is ___ mm.
+july_sd <- (13 - 7) / 4
+
+```
+
+
+# Company
+```{r}
+comp_mu <- 3.1
+comp_sd <- .005
+
+# Assuming these data are normally distributed and the middle 99.7% of the bolts were accepted, the lower specification limit is ___ mm.
+3.1 - (3 * .005)
+
+```
+

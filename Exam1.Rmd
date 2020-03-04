@@ -1,0 +1,396 @@
+---
+title: "Exam 1: Take-Home Component"
+author: "Elise Haylett"
+date: '`r format(Sys.time(), "%A, %B %d, %Y @ %I:%M %p")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+<hr>
+
+```{r globaloptions, include = FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = NA)
+```
+
+Load all packages and datasets you used here.
+
+```{r loadpackages&data}
+library(tidyverse)
+vietnamdraft <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/vietnamdraft.csv"))
+recidivism <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Chihara/Recidivism.csv"))
+```
+
+**Note:** You should be using `tidyverse` functions whenever possible for manipulating and summarizing data and for making plots. Except for plots used specifically to assess normality, your plots should have appropriate titles and axis labels (e.g., not the default variable names). If you have a partial code attempt that prevents your Markdown from compiling to HTML, comment out the code so `R` will not try to compile it but I can still see your efforts.  
+
+***
+### Problem 1
+
+#### Background
+
+In December 1969, the U.S. Selective Service System conducted a lottery to a create a "random"
+draft order for eligible men in the upcoming year 1970. Read the [dataset description](https://stat-jet-asu.github.io/Datasets/InstructorDescriptions/vietnamdraft.html) for the Vietnam Draft [dataset](https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/vietnamdraft.csv) that contains the results of this and subsequent Vietnam lotteries, including the linked New York Times article "Statisticians Charge Draft Lottery Was Not Random" to learn about how the lottery was conducted.
+
+Statistically speaking, the draft numbers for 1970 were drawn without replacement from the integer set $x = \{1, 2, 3, ..., 366\}$. The probability of drawing any draft number remaining in the pool at each step of the process was believed to be equal for all numbers, which would mean that all possible permutations of the 366 integers were equally likely---a fair process. It is impossible to prove whether the selection process was biased (non-random), but we can explore whether the outcome for 1970 seems to be consistent with randomness.
+
+#### Your Analyses
+
+(A) In your opinion, what are two aspects of the physical process used to select the numbers in the 1970 draft lottery (refer back to the NYT article for details) that could cast doubt on the fairness of the results, even before examining statistical evidence like monthly means? How could those two aspects have impacted the randomness?
+
+**ANSWER:** The two aspects of the physical process that impacted the randomness of the draft lottery were entering the capsules in the box after each month were completed and no longer tussling with the capsules after it was entered into the drawing bowl. Once the days of January were entered into the capsules they were put into the box and every month following was done the same. Even though the box was "shook," the birthdays at the beginning of the year would still be more concentrated at the bottom of the box regardless if it was mixed with the months following. Carrying a box up and down three flights of stairs did not constitute thoroughly shuffling the capsules. After this process, the capsules were no longer tussled with after entering the drawing bowl. This did not leave an equal chance of a birthday in each month to be chosen because whatever end of the box that had the concentration of months was now at the bottom of the bowl which was rarely chosen/messed with.
+
+(B) Filter the dataset so that you extract only the data for draft year 1970.
+
+```{r}
+vietnamdraft <- vietnamdraft %>% 
+  filter(draftyear == 1970)
+```
+
+(C) Calculate the sample size, mean, and median of the set of draft numbers.
+
+```{r}
+vietnamdraft %>% 
+  summarize(n = n(),
+            mean = mean(draftnumber),
+            median = median(draftnumber))
+```
+
+(D) Calculate the sample size, mean, and median of draft numbers for each month.
+
+```{r}
+vietnamdraft %>% 
+  group_by(month) %>% 
+  summarize(n = n(),
+            mean = mean(draftnumber),
+            median = median(draftnumber))
+```
+
+(E) Create a new variable in your filtered dataset called `drafted` that has the value `yes` if a draft number was called up in 1970 and `no` if it was not. 
+
+```{r}
+vietnamdraft <- vietnamdraft %>% 
+  mutate(drafted = ifelse(draftnumber <= 195, "yes", "no"))
+```
+
+(F) Use this new variable to compute the probability that a man born in the first half of the year had his draft number called. Do the same for the second half of the year.
+
+```{r}
+vietnamdraft %>% 
+  group_by(halfyear) %>% 
+  summarize(fraction = mean(drafted == "yes"))
+
+```
+
+(G) Use your new variable to create a barplot that displays the proportion of draft numbers were called or not called up within each half of the year. (Hint: The proportions of "yes" you see here should match your probability calculations above.)
+
+```{r}
+ggplot(vietnamdraft, aes(x = halfyear, fill = drafted)) +
+  geom_bar(width = .5, position = "fill") +
+  scale_y_continuous(breaks = seq(0, 1, by = .25)) +
+  scale_fill_brewer(palette = "Accent") +
+  theme_linedraw() +  
+  labs(title = " Probability of Draft Numbers Called Based on Part of the Year",
+       x = "Part of the Year",
+       y = "Proportion")
+```
+
+***
+### Problem 2
+
+#### Background 
+
+Review the details of Case Study 1.4: Iowa Recidivism found on p. 4 of the MSRR, 2nd Ed. textbook. 
+
+#### Your Analyses
+
+(A) Why is this dataset be considered to be a population by the authors of the textbook? Alternatively, in what context could it be considered a sample?
+
+**ANSWER:** The book may consider this dataset a population because the data contains information collected on ALL offenders in the state of Iowa. If the data was collected on a single city, that would be a sample from the offender popultion in the state of Iowa. Additionally, the dataset on recividism could be considered a sample if there was recidivism data collected on the entire offender population in the United States and the state of Iowa's data would be a sample of that offender population. 
+
+(B) Use `glimpse` to visualize the contents and structure of the dataset.
+
+```{r}
+glimpse(recidivism)
+```
+
+(C) Create a new variable in the dataset called `Weeks` that transforms the number of days to recidivism into number of weeks to recidivism.
+
+```{r}
+options(digits = 2)
+recidivism <- recidivism %>% 
+  mutate(Weeks = Days / 7)
+```
+
+(D) Summarize the number of weeks to recidivism, including n, mean, standard deviation, and five-number summary. Use the `quantile()` function to compute the deciles for number of weeks to recidivism. Use the `seq()` function in the `quantile()` function to express the set of quantiles you are trying to find.
+
+```{r}
+recidivism %>% 
+  filter(Recid == "Yes") %>% 
+  summarize(AvgWeeks = mean(Weeks),
+            n = n(),
+            WeeksSD = sd(Weeks),
+            MinWeeks = fivenum(Weeks)[1],
+            WeeksQ1 = fivenum(Weeks)[2],
+            MedianWeeks = fivenum(Weeks)[3],
+            WeeksQ3 = fivenum(Weeks)[4],
+            MaxWeeks = fivenum(Weeks)[5])
+
+quantile(recidivism$Weeks, seq(.1, .9, .1), na.rm = TRUE) 
+
+```
+
+(E) Demonstrate that we could have found mean and standard deviation for number of weeks to recidivism by first computing the mean and standard deviation for number of days to recidivism and then transforming those values to weeks.
+
+```{r}
+summDays <- recidivism %>% 
+  filter(Recid == "Yes") %>% 
+  summarize(Average = mean(Days),
+            SD = sd(Days))
+
+(summWeeks <- summDays / 7)
+```
+
+(F) Create side-by-side boxplots for number of weeks to recidivism, grouped by type of violation. Filter out the "no recidivism" group first, since we know all their data is NA.
+
+```{r}
+recidivism %>% 
+  filter(Recid == "Yes") %>%  
+    ggplot(aes(x = Offense, y = Weeks)) +
+      geom_boxplot(fill = c("#fdc086", "#beaed4")) +
+      labs(title = "Weeks until Recidivism Grouped by Type of Offense",
+           subtitle = "Iowa Recidivism Data Set",
+           caption = "https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Chihara/Recidivism.csv",
+           x = "Violation type",
+           y = "Number of weeks to recidivism") +
+      theme_linedraw() +
+      scale_y_continuous(breaks = seq(0, 150, by = 25)) +
+      theme(legend.position = "none")
+```
+
+(G) Compute the upper and lower fences for each group represented in your comparitive boxplots. Display in some manner the values of any outliers that exist in each group.
+
+```{r}
+recidivism %>% 
+  filter(Recid == "Yes") %>% 
+  group_by(Offense) %>% 
+  summarize(lowerfence = fivenum(Weeks)[2] - 1.5 * IQR(Weeks),
+            upperfence = fivenum(Weeks)[4] + 1.5 * IQR(Weeks))
+
+# Looking for outliers in each violation type
+felony <- recidivism %>% 
+  filter(Offense == "Felony",
+         Recid == "Yes")
+(felonyoutlier <- boxplot(felony$Weeks)$out)
+
+misdemeanor <- recidivism %>% 
+  filter(Offense == "Misdemeanor",
+         Recid == "Yes")
+(misdoutlier <- boxplot(misdemeanor$Weeks)$out)
+
+```
+
+(H) For the full `Recidivism` dataset, convert the variable containing data about age at release into an ordered factor variable so that the age groups will be presented in ascending order. 
+
+```{r}
+recidivism <- recidivism %>% 
+  mutate(Age = factor(Age, levels = c("Under 25", "25-34", "35-44", "45-54", "55 and Older")))
+```
+
+(I) Create a frequency table that summarizes the counts, proportions, cumulative counts, and cumulative proportions for the variable containing data about age at release.
+
+```{r}
+# slide show
+(Age_Table <- recidivism %>% 
+  count(Age) %>% 
+  mutate(proportions = prop.table(n),
+         cum_count = cumsum(n),
+         cum_prop  = cumsum(proportions)))  
+
+```
+
+***
+### Problem 3
+
+#### Background
+
+A [digital communication channel transmits binary signals](http://what-when-how.com/data-communications-and-networking/digital-transmission-of-digital-data/) (0 or 1). These signals are then built into larger messages. For example, ASCII represents letters and other symbols using an 8-bit binary code. Suppose a system is susceptible to electronic interference, so there is a .001% chance that any single bit sent by the system will be incorrectly received (i.e., the sender transmits 0, which the receiver mistakenly interprets as 1). Assume the interference is non-patterned, so all errors are random and independent. One simple method for error reduction is repetition code. For critical messages, we can use triple repetition code (TRC). The individual digits are transmitted as repeated blocks of three identical digits (a single 0 in the message would be sent as the block 000 and a single 1 would be sent as 111). The receiver uses a "majority logic decoding" method on blocks. If the majority of the three-block's digits are interpreted by the receiver as 0, then the transmitted digit represented by the block is recorded as a 0. If the majority are interpreted as 1, then the digit is recorded as a 1. For example, 001 is received as 0 and 101 is received as 1. We can model a system like this using the binomial and/or normal distributions.
+
+#### Your Analyses
+
+(A) A 1000 Mbit/s system transmits 10^9^ individual bits per second. If each bit has a 0.001% chance of being incorrectly received, how many errors per second would we expect to get, on average? What is the standard deviation of the number of errors? Calculate the answers using the theoretical binomial model.
+
+```{r}
+options(scipen = 999)
+n <- 10^9
+p <- .001 / 100
+q <- 1 - p
+
+# E(X)
+(Bitmean <- n * p)
+
+# SD(X)
+(BitSD <- sqrt(n * p * q))
+
+```
+
+(B) What is the probability of getting no errors in a given second? What is the probability that the system exceeds the expected number of errors? What is the probability that the number of errors is within one standard deviation of the mean? Calculate the theoretical answer.
+
+```{r}
+# No errors, P(X = 0)
+dbinom(0, n, p)
+
+# Exceeds E(X), P(X > 10000)
+pbinom(10000, n, p, F)
+
+# Within one SD of E(X)
+pbinom(10100, n, p) - pbinom(9900, n, p)
+
+```
+
+(C) Verify your calculations (A) and (B) using simulation with 100,000 randomly generated values. Also plot a histogram of your simulation results.
+
+```{r}
+#datacamp - simulating a normal model
+simulation <- rbinom(10000, 10^9, .00001)
+sims <- data.frame(simulation)
+
+ggplot(sims, aes(x = simulation)) +
+  geom_histogram(bins = 75, color = "black", fill = "#beaed4") +
+  scale_x_continuous(breaks = seq(9600, 10400, by = 100)) +
+  theme_linedraw() +
+  labs(title = "Simulation of randomly generated values",
+       x = "Normal Distribution of Simulations") +
+  theme(axis.title.y = element_blank())
+
+```
+
+(D) In the class videos and *Foundations of Probability in R* DataCamp course, you learned about the normal approximation to the binomial distribution. Create a plot showing the theoretical normal curve that would correspond to the binomial scenario in (A). Label the mean and four standard deviations on either side of the mean. 
+
+```{r}
+ggplot(sims, aes(x = simulation)) +
+  stat_function(fun = dnorm, 
+                args = list(Bitmean, BitSD),   
+                color = "#7fc97f") +
+  scale_x_continuous(breaks = seq(Bitmean - (4 * BitSD),  
+                                  Bitmean + (4 * BitSD), BitSD)) +
+  theme_linedraw() +
+  labs(title = "Theoretical Normal Curve of Simulations",
+       x = "Normal Distribution of Simulations") +
+  theme(axis.title.y = element_blank())
+```
+
+(E) Is the normal approximate appropriate here? Assess your simulation results for normality using a density plot, EDCF plot, QQ plot, and calculations of skewness and kurtosis.
+
+```{r}
+# density plot
+ggplot(sims, aes(x = simulation)) + 
+  geom_density() +
+  stat_function(fun = dnorm, 
+                args = list(Bitmean, BitSD),   
+                color = "#fdc086") +
+  scale_x_continuous(breaks = seq(Bitmean - (4 * BitSD),  
+                                  Bitmean + (4 * BitSD), BitSD)) +
+  theme_linedraw() +
+  labs(title = "Theoretical Normal Curve of Simulations",
+       x = "Normal Distribution of Simulations") +
+   theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank())
+
+# empirical cdf
+ggplot(sims, aes(x = simulation)) + 
+  stat_ecdf() +
+  stat_function(fun = pnorm, 
+                args = list(Bitmean, BitSD), 
+                color = "#fdc086") +
+  theme_linedraw() + 
+  labs(title = "Empirical Cumulative Distribution Function for Simulations") +
+  theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank())
+
+# qqplot
+ggplot(sims, aes(sample = simulation)) + 
+  stat_qq(alpha = .25) +
+  stat_qq_line(color = "#fdc086") +
+  theme_linedraw() +
+  labs(title = "QQ Plot for Simulations",
+       x = "Normal Distribution of Simulations") +
+   theme(axis.title.y = element_blank(),
+        axis.title.x = element_blank())
+```
+
+(F) What is the probability of getting no errors in a given second? What is the probability that the system exceeds the expected number of errors? What is the probability that the number of errors is within one standard deviation of the mean? Calculate the theoretical answer. Calculate the theoretical answer using the normal model.
+
+```{r}
+# No errors, P(X = 0)
+pnorm(0, Bitmean, BitSD)
+
+# Exceeds E(X), P(X > 10000) 
+pnorm(10000, Bitmean, BitSD, F)
+
+# Within one SD of E(X)
+pnorm(10100, Bitmean, BitSD) - pnorm(9900, Bitmean, BitSD)
+```
+
+(F) Transmitting single bits on this system results in a fairly large number of errors. What if we use triple repetition code (TRC) strategy here? That would be a different binomial model. Let X be the number of bits in a single TRC block that are correctly received. Compute the pmf of X. Display the results and create a bar plot. 
+
+```{r}
+tn <- 3
+tp <- 1 - .00001 # probability that there will be no errors
+tq <- 1 - tp
+bin_pmf <- tibble(x = 0:tn, probability = dbinom(x, tn, tp), tq = (1 - probability))
+print.data.frame(bin_pmf, digits = 4, row.names = FALSE)
+
+ggplot(bin_pmf, aes(x = x, y = probability)) + 
+  geom_bar(stat = "identity", fill = "#7fc97f") +
+  scale_x_continuous(breaks = 0:tn) +
+  theme_linedraw() +
+  labs(title = "Probability of Correctly Received Bits in a TRC Block",
+       x = "Number of bits in a TRC",
+       y = "Probability")
+```
+
+(G) What is the probability that any single TRC block (e.g., 000) is interpreted correctly?
+
+```{r}
+errp <- 0.000000000299997 # Probability of an error with the TRC block
+
+# P(Correct)
+dbinom(0, 3, errp)
+```
+
+(H) Suppose we have a parallel system that lets us transmit 10^9^ bits per second using TRC, similar to (A) but with reduced error due to the built-in redundancy. How many errors per second would we expect to get now? What percentage reduction does this represent compared to the single-bit system?
+
+```{r}
+TRCn <- 10^9
+TRCp <- 0.0000000003
+
+# E(X)
+TRCn * TRCp
+
+# Percentage Reduction compared to single-bit system
+((10000 - 0.3) / 100) 
+```
+
+Just for fun! Modify the code below to display the ASCII representation of your name. 
+
+```{r, message = FALSE}
+require(gtools)
+require(broman)
+require(BMS)
+NAMELET  <- c("E", "l", "i", "s", "e", "H", "a", "y", "l", "e", "t", "t")
+n        <- length(NAMELET)
+NAMEHEX  <- convert2hex(asc(NAMELET))
+NAMEBIN  <- matrix(rep(0, n * 8), ncol = 8)
+for (i in 1:n) {
+    NAMEBIN[i, 1:8] <- hex2bin(NAMEHEX[i])
+}
+rownames(NAMEBIN) <- NAMELET
+colnames(NAMEBIN) <- c("Bit1", "Bit2", "Bit3", "Bit4", "Bit5", "Bit6", "Bit7", "Bit8")
+print(NAMEBIN)
+```
+
+***
+```{r}
+sessionInfo()
+```
