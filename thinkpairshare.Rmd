@@ -1,0 +1,35 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+1) Exercise 3.1. You are welcome to do this by hand, but can you also figure out how to do it with R code? You do not have to show all the permutations in (b) but do report the differences in means.
+```{r}
+library(tidyverse)
+library(combinat)
+library(prob)
+
+ctrl_mice <- c(5, 9)
+exp_mice <- c(8, 10, 15)
+
+# a
+Diff <- exp_mice - ctrl_mice
+observed <- mean(Diff)
+
+# b
+factorial(5)
+```
+
+
+2) Exercise 3.2. Be sure to show us your thought processes and support your answers in this question, do not just answer "yes" and "no"?
+```{r}
+# I would be willing to tell my professor that she is wrong about the distribution of marbles (9,999 blue, 1 red) because it not is likely. The probability of pulling out 1 red marble out of 10,000 is .0001. It is more likely that 1 red marble can pulled out of a jar with a distribution of 1 red marble and 9 blue marbles. The probability of pulling out 1 red marble out of 10 is .1
+```
+
+
+3) Exercise 3.4. We subtract 1 from the number of simulation replications N (in the book's examples) and then add it back at the end. Why?
+```{r}
+#1 is added back because it includes the orinigal data as an extra resample. It avoids reporting an impossible p-value.
+```
+
+
