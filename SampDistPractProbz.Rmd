@@ -1,0 +1,485 @@
+---
+title: "Sampling & Inference Practice Problems"
+author: "Elise Haylett"
+date: "4/13/2020"
+output: html_document
+---
+
+```{r globaloptions, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = NA)
+```
+
+```{r loading packages and data files}
+library(infer)
+library(tidyverse)
+library(combinat)
+library(kableExtra)
+
+FlightDelays <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Chihara/FlightDelays.csv"))
+```
+
+___________
+
+#### Exercise 3.5
+In the flight delays case study, the data contain flight delays for two airlines, American Airlines and United Airlines. <br>
+a) Conduct a two-sided permutation test to see if the difference in mean delay times between the two carriers are statistically significant.
+
+```{r}
+carrier_delay <- FlightDelays %>%  
+  group_by(Carrier) %>%  
+  summarize(n = n(), 
+            xbar = mean(Delay),
+            s = sd(Delay)) 
+
+carrier_delay
+
+obs_diff <- diff(carrier_delay$xbar) # xbar_UA - xbar_AA
+
+sprintf("The observed mean difference (xbar_UA - xbar_AA) is %1.2f minutes.", obs_diff) # test statistic
+```
+
+```{r}
+set.seed(1)
+
+simdata <- pull(FlightDelays, Delay)
+total_n <- length(simdata)
+group_n <- carrier_delay$n[2]
+
+N_sims <- 10^4 - 1
+
+rand_diffs <- numeric(N_sims)
+
+for (i in 1:N_sims) {
+  index <- sample(total_n, group_n)
+  rand_diffs[i] <- mean(simdata[index]) - mean(simdata[-index])
+}
+```
+
+```{r}
+ggplot(NULL, aes(x = rand_diffs)) +
+  geom_histogram(bins = 30, color = "black", fill = "plum1") +
+  geom_vline(xintercept = obs_diff, color = "blue", linetype = "dashed") +
+  theme_linedraw() +
+  theme(axis.title.y = element_blank())
+```
+
+```{r}
+alpha <- .05
+pvalue.two.sided <- 2 * (sum(rand_diffs >= obs_diff) + 1)/(N_sims + 1)
+sprintf("The p-value for Ho: mu_UA = mu_AA vs. Ha: mu_UA ≠ mu_AA is %1.5f.", pvalue.two.sided)
+ifelse(pvalue.two.sided <= alpha, sprintf("Reject Ho."), sprintf("Do not reject Ho."))
+```
+
+<br>
+b) The flights took place in May and June of 2009. Conduct a two-sided permutation test to see if the difference in mean times between the two months is statistically significant.
+
+```{r}
+month_delay <- FlightDelays %>% 
+  group_by(Month) %>%
+  summarize(n = n(),
+            xbar = mean(Delay),
+            s = sd(Delay))
+month_delay
+
+obs_diff <- diff(month_delay$xbar) # xbar_May - xbar_JUne
+
+sprintf("The observed mean difference (xbar_May - xbar_June) is %1.2f minutes.", obs_diff) # test statistic
+```
+
+```{r}
+set.seed(1)
+
+simdata <- pull(FlightDelays, Delay)
+total_n <- length(simdata)
+group_n <- month_delay$n[2]
+
+N_sims <- 10^4 - 1
+
+rand_diffs <- numeric(N_sims)
+
+for (i in 1:N_sims) {
+  index <- sample(total_n, group_n)
+  rand_diffs[i] <- mean(simdata[index]) - mean(simdata[-index])
+}
+```
+
+```{r}
+ggplot(NULL, aes(x = rand_diffs)) +
+  geom_histogram(bins = 30, color = "black", fill = "mediumaquamarine") +
+  geom_vline(xintercept = obs_diff, color = "blue", linetype = "dashed") +
+  theme_linedraw() +
+  theme(axis.title.y = element_blank())
+```
+
+```{r}
+alpha <- .05
+pvalue.two.sided <- 2 * (sum(rand_diffs <= obs_diff) + 1)/(N_sims + 1)
+sprintf("The p-value for Ho: mu_May = mu_June vs. Ha: mu_May ≠ mu_June is %1.5f.", pvalue.two.sided)
+ifelse(pvalue.two.sided <= alpha, sprintf("Reject Ho."), sprintf("Do not reject Ho."))
+```
+
+___________
+
+#### Exercise 3.9
+In the flight delays case study, <br>
+a) Compute the proportion of times the flights in May and in June were delayed more than 20 minutes, and conduct a two-sided test to see if the difference between months is statistically significant.
+
+```{r}
+prop_delay <- FlightDelays %>% 
+  group_by(Month) %>%
+  summarize(n = n(),
+            prop = mean(Delay > 20)) %>% 
+  arrange(desc(Month))
+prop_delay
+
+prop_diff <- diff(prop_delay$prop) # prop_June - prop_May
+
+sprintf("The difference in proportion of times flights in May and June were delayed more than 20 minutes is %1.3f.", prop_diff)
+```
+
+```{r}
+set.seed(1)
+
+simdata <- pull(FlightDelays, Delay)
+total_n <- length(simdata)
+group_n <- prop_delay$n[2]
+
+N_sims <- 10^4 - 1
+
+rand_diffs <- numeric(N_sims)
+
+for (i in 1:N_sims) {
+  index <- sample(total_n, group_n)
+  rand_diffs[i] <- mean(simdata[index] > 20) - mean(simdata[-index] > 20)
+}
+```
+
+```{r}
+ggplot(NULL, aes(x = rand_diffs)) +
+  geom_histogram(bins = 30, color = "black", fill = "sienna2") +
+  geom_vline(xintercept = prop_diff, color = "blue", linetype = "dashed") +
+  theme_linedraw() +
+  theme(axis.title.y = element_blank())
+```
+
+```{r}
+alpha <- .05
+pvalue.two.sided <- 2 * (sum(rand_diffs >= prop_diff) + 1)/(N_sims + 1)
+sprintf("The p-value for Ho: phat_May = phat_June vs. Ha: phat_May ≠ phat_June is %1.5f.", pvalue.two.sided)
+ifelse(pvalue.two.sided <= alpha, sprintf("Reject Ho."), sprintf("Do not reject Ho."))
+```
+
+<br>
+b) Compute the ratio of the variances in the flight delay times in May and in June. Is this evidence that the true ratio is not equal to 1 or could this be due to chance variability? Conduct a two-sided test to check.
+
+```{r}
+var_delay <- FlightDelays %>% 
+  group_by(Month) %>% 
+  summarize(n = n(),
+            variance = var(Delay)) %>% 
+  arrange(desc(Month))
+var_delay
+
+var_obs <- var_delay$variance[1] / var_delay$variance[2]
+
+sprintf("The ratio of variances in the flight delay times in May and June is %1.3f.", var_obs)
+```
+
+```{r}
+set.seed(1)
+
+simdata <- pull(FlightDelays, Delay)
+total_n <- length(simdata)
+group_n <- var_delay$n[1]
+
+N_sims <- 10^5 - 1
+
+result <- numeric(N_sims)
+
+for (i in 1:N_sims) {
+  index <- sample(total_n, group_n)
+  rand_diffs[i] <- var(simdata[index]) - var(simdata[-index])
+}
+```
+
+```{r}
+ggplot(NULL, aes(x = result)) +
+  geom_histogram(bins = 30, color = "black", fill = "palegreen4") +
+  geom_vline(xintercept = var_obs, color = "red", linetype = "dashed") +
+  theme_linedraw() +
+  theme(axis.title.y = element_blank())
+```
+
+```{r}
+alpha <- .05
+pvalue.two.sided <- 2 * (sum(result >= var_obs) + 1)/(N_sims + 1)
+sprintf("The p-value for Ho: true ratio = 1 vs. Ha: true ratio ≠ 1 is %1.5f.", pvalue.two.sided)
+ifelse(pvalue.two.sided <= alpha, sprintf("Reject Ho."), sprintf("Do not reject Ho."))
+```
+
+**There is evidence to conclude that the true ratio of variances in flight delay times in May and June is not equal to 1.**
+
+___________
+
+#### Exercise 4.7
+The data set `FlightDelays` contains the population of all flight departures by United Airlines and American Airlines out of LGA during May and June of 2009. <br>
+a) Create a histogram of `Delay` and describe the distribution. Compute the mean and standard deviation.
+
+```{r}
+ggplot(FlightDelays, aes(x = Delay)) + 
+  geom_histogram(bins = 30, col = "black", fill = "orange") +
+  labs(title = "Length of delays of flights out of LaGuardia Airport",
+       x = "Lenth of Delay") +
+  scale_y_continuous(limits = c(0, 3500), breaks = seq(0, 3500, by = 500)) +
+  theme_linedraw() +
+  theme(axis.title.y = element_blank())
+```
+
+**The distribution of delay times of flights is right skewed with extremely large outliers.**
+
+```{r}
+FlightDelays %>% 
+  summarize(mean = mean(Delay),
+            sd = sd(Delay))
+```
+
+<br>
+b) Simulate the sampling distribution of $\bar{x}$, the sample mean of the length of the flight delays (`Delay`), for samples of size 25. Create a histogram and describe the simulated sampling distribution of $\bar{x}$. Estimate the mean and standard error.
+```{r}
+mu <- 11.7379	
+
+delays <- FlightDelays$Delay
+
+sims  <- 1000              # number of samples
+delays_N <- length(delays)  # population size
+n     <- 25                 # sample size
+
+xbar <- numeric(sims) # vector to store the means of the random samples
+
+for (i in 1:sims) {
+  delay_samp    <- sample(delays_N, n)           # randomly choose n sample IDs
+  xbar[i] <- mean(delays[delay_samp])  # compute/store the sample mean
+}
+```
+
+```{r}
+ggplot(NULL, aes(x = xbar)) +
+  geom_histogram(bins = 30, color = "black", fill = "skyblue") +
+  geom_vline(xintercept = mu, color = "red", linetype = "dashed") +
+  theme_linedraw() + 
+  labs(title = "Length of delays of flights out of LaGuardia Airport",
+       subtitle = "n = 25",
+       x = "Lenth of Delay") +
+  theme(axis.title.y = element_blank())
+```
+
+```{r}
+mean(xbar)
+sd(xbar)
+```
+
+<br>
+c) Compare your estimate of the standard error with the theoretical standard error. <br>
+**The theoretical standard error of the length of delays is roughly 5 times greater than the estimate of the standard error of length of delays.**
+
+<br>
+d) Repeat the above using samples of size 250 and compare with the $n = 25$ scenario.
+
+```{r}
+mu <- 11.7379	
+
+delays <- FlightDelays$Delay
+
+sims  <- 1000              # number of samples
+delays_N <- length(delays)  # population size
+n     <- 250                 # sample size
+
+xbar <- numeric(sims) # vector to store the means of the random samples
+
+for (i in 1:sims) {
+  delay_samp    <- sample(delays_N, n)           # randomly choose n sample IDs
+  xbar[i] <- mean(delays[delay_samp])  # compute/store the sample mean
+}
+```
+
+```{r}
+ggplot(NULL, aes(x = xbar)) +
+  geom_histogram(bins = 30, color = "black", fill = "cornsilk2") +
+  geom_vline(xintercept = mu, color = "red", linetype = "dashed") +
+  theme_linedraw() + 
+  labs(title = "Length of delays of flights out of LaGuardia Airport",
+       subtitle = "n = 250",
+       x = "Lenth of Delay") +
+  theme(axis.title.y = element_blank())
+```
+
+```{r}
+mean(xbar)
+sd(xbar)
+```
+
+**After generating 250 samples, the estimated standard error was reduced to about half of the estimated standard error when $n = 25$. The distribution of length of delays is also approximating to a normal distribution as the sample size increases.**
+
+___________
+
+#### Exercise 4.20
+Let $X_1, X_2, ..., X_9$ ~ $N(7, 3^2)$, and $Y_1, Y_2, ..., Y_{12}$ ~ $N(10, 5^2)$. Let $W = \bar{X} - \bar{Y}$. <br>
+a) Give the exact sampling distribution of $W$.
+```{r}
+xbar <- 7
+ybar <- 10
+(mu_W <- xbar - ybar)
+
+n <- 30
+
+s_x <- 3 / sqrt(n)
+s_y <- 5 / sqrt(n)
+(s_W <- s_x + s_y)
+
+(var_W <- (s_W)^2)
+
+```
+
+<br>
+b) Simulate the sampling distribution $W$ in `R`, and plot your results (adapt code from the previous exercise). Check that the simulated mean and standard error are close to the theoretical mean and standard error.
+```{r}
+W <- numeric(1000)
+for (i in 1:1000) {
+  x <- rnorm(10, 7, 3)
+  y <- rnorm(15, 10, 5)
+  W[i] <- mean(x) - mean(y)
+}
+```
+
+```{r}
+mean(W)
+sd(W)
+```
+
+<br>
+c) Use your simulation to find $P(W < -1.5)$. Calculate an exact answer and compare.
+
+```{r}
+ggplot(NULL, aes(x = W)) +
+  geom_histogram(bins = 20, color = "black", fill = "lightblue") +
+  geom_vline(xintercept = -1.5, color = "red", linetype = "dashed") +
+  theme_classic()
+  
+mean(W < -1.5)
+```
+
+___________
+
+#### Semmelweiss
+```{r loading Semmelweiss data}
+data <- "https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/semmelweisannualbyclinic.csv"
+by_clinic <- read_csv(file = url(data)) %>% 
+  mutate(mortality = 100 * deaths / births)
+
+glimpse(by_clinic)
+head(by_clinic)
+
+handwashing_start <- as.Date("1847-06-01")
+data <- "https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/semmelweismonthly.csv"
+by_month <- read_csv(file = url(data)) %>% 
+  mutate(mortality = 100 * deaths / births,
+         handwashing = ifelse(date < handwashing_start, "dirty", "washed"))
+
+glimpse(by_month)
+head(by_month)
+```
+
+Consider the Semmelweiss activity from Week 1.  Conduct a permutation resampling test to determine whether the average mortality for Clinic 1 was statistically significantly greater than the average mortality for Clinic 2 between 1841 and 1846 (one-tailed test).
+$$H_0: \mu_1 = \mu_2$$
+$$H_A: \mu_1 > \mu_2$$
+```{r}
+mortality <- by_clinic %>% 
+  group_by(clinic) %>% 
+  summarize(n = n(),
+            average = mean(mortality))
+
+(clinic_diff <- diff(mortality$average)) # clinic 2 - clinic 1
+```
+
+```{r}
+set.seed(1)
+
+sim_data <- pull(by_clinic, mortality)
+total_n <- length(sim_data)
+group_n <- mortality$n[2]
+
+N <- 10^4 - 1
+difference <- numeric(N)
+
+for (i in 1:N) {
+  index <- sample(total_n, group_n)
+  difference[i] <- mean(sim_data[index]) - mean(sim_data[-index])
+}
+
+```
+
+```{r}
+ggplot(NULL, aes(x = difference)) +
+  geom_histogram(bins = 30, color = "black", fill = "slateblue1") +
+  geom_vline(xintercept = clinic_diff, color = "red", linetype = "dashed") +
+  scale_x_continuous(limits = c(-6, 6), breaks = seq(-6, 6, by = 2)) +
+  theme_classic() +
+  theme(axis.title.y = element_blank())
+```
+
+```{r}
+alpha <- .05
+pvalue.greater <- (sum(difference >= clinic_diff) + 1)/(N_sims + 1)
+sprintf("The p-value for Ho: mu_clinic1 = mu_clinic2 vs. Ha: mu_clinic1 > mu_clinic2 is %1.5f.", pvalue.greater)
+ifelse(pvalue.greater <= alpha, sprintf("Reject Ho."), sprintf("Do not reject Ho."))
+```
+
+<br>
+Conduct a permutation resampling test to determine whether average mortality statistically significantly decreased after the introduction of handwashing in May 1847 (one-tailed test).
+$$H_0: \mu_{washed} = \mu_{dirty}$$
+$$H_A: \mu_{washed} < \mu_{dirty}$$
+```{r}
+handwashing <- by_month %>% 
+  group_by(handwashing) %>% 
+  summarize(n = n(),
+            average = mean(mortality))
+
+(handwashing_diff <- diff(handwashing$average)) # washed - dirty
+```
+
+```{r}
+set.seed(1)
+
+sim_data <- pull(by_month, mortality)
+total_n <- length(sim_data)
+group_n <- handwashing$n[2]
+
+N <- 10^4 - 1
+difference <- numeric(N)
+
+for (i in 1:N) {
+  index <- sample(total_n, group_n, replace = FALSE)
+  difference[i] <- mean(sim_data[index]) - mean(sim_data[-index])
+}
+
+```
+
+```{r}
+ggplot(NULL, aes(x = difference)) +
+  geom_histogram(bins = 30, color = "black", fill = "lavender") +
+  geom_vline(xintercept = handwashing_diff, color = "red", linetype = "dashed") +
+  scale_x_continuous(limits = c(-10, 10), breaks = seq(-10, 10, by = 5)) +
+  theme_classic() +
+  theme(axis.title.y = element_blank())
+```
+
+```{r}
+alpha <- .05
+pvalue.less <- (sum(difference <= handwashing_diff) + 1)/(N_sims + 1)
+sprintf("The p-value for Ho: mu_handwashing = mu_dirty vs. Ha: mu_handwashing < mu_dirty is %1.5f.", pvalue.less)
+ifelse(pvalue.less <= alpha, sprintf("Reject Ho."), sprintf("Do not reject Ho."))
+```
+
+
+
+

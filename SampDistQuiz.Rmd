@@ -1,0 +1,146 @@
+---
+title: "Sampling Distribution Quiz"
+author: "Elise Haylett"
+date: "4/13/2020"
+output: html_document
+---
+```{r}
+options(scipen = 999)
+```
+
+# Weight
+```{r}
+# For randomly selected samples of n = 16 men, what is the expected value of the sampling distribution of the sample mean?
+mu <- 190
+
+# For randomly selected samples of n = 16 men, what is the standard error of the sampling distribution of the sample mean?
+sigma <- 24
+n <- 16
+se <- 24 / sqrt(n)
+
+# What would be the minimum sample size required to make the standard error of the sampling distribution of the sample mean less than 2.4?
+# 2.4 = 24 / sqrt(n)
+# 2.4 * sqrt(n) = 24
+# sqrt(n) = 24 / 2.4
+# sqrt(n) = 10
+# sqrt(n)^2 = 10^2
+# n = 100
+(24 / 2.34)^2 # less than 2.4
+
+
+
+# If I randomly select one man, what is the probability that his weight is 195 pounds or more?
+sigma <- 24
+n <- 1
+se <- 24 / sqrt(n)
+
+(pnorm(195, 190, se, lower.tail = FALSE))
+
+#If I randomly select 100 men, what is the probability that their average weight is 195 pounds or more?
+sigma <- 24
+n <- 100
+se <- sigma / sqrt(n)
+
+(pnorm(195, 190, se, lower.tail = FALSE))
+```
+
+
+# Airline
+```{r}
+# If we only consider full flights, what is the mean of the sampling distribution of \bar{x}, where X is individual passenger/baggage weight?
+mu_a <- 210
+
+# If we only consider full flights, what is the variance of the sampling distribution of \bar{x}, where X is individual passenger (plus baggage) weight?
+sigma_a <- 25
+n_a <- 40
+se_a <- sigma_a / sqrt(n_a)
+var <- (25^2) / 40
+
+# What is the probability that an individual passenger's weight (with baggage) exceeds 220 pounds?
+sigma_a <- 25
+n_a <- 1
+se_a <- sigma_a / sqrt(n_a)
+
+(pnorm(220, 210, se_a, lower.tail = FALSE))
+
+# On a full flight, what is the probability that average passenger weight (with baggage) exceeds 220 pounds?
+sigma_a <- 25
+n_a <- 40
+se_a <- sigma_a / sqrt(n_a)
+
+(pnorm(220, 210, se_a, lower.tail = FALSE))
+
+# According to air safety regulations, the total weight of passengers and baggage should not exceed 8800 pounds. What is the probability that this happens on a full flight?
+mu_p <- 210 * 40
+se_p <- se_a * 40
+
+(pnorm(8800, 8400, se_p, lower.tail = FALSE))
+
+```
+
+
+# Rental Car
+```{r}
+# Suppose someone mistakenly tries to model daily mileage using a normal curve. What proportion of the modeled mileage values would be negative—which is of course impossible in the real world?
+mu_rc <- 98
+sig_rc <- 51
+
+(pnorm(-1, 98, 51))
+
+# What is the probability that the average daily mileage for a car that was rented for 289 days last year exceeds 100 miles?
+mu_rc <- 98
+sig_rc <- 51
+n_rc <- 289
+se_rc <- sig_rc / sqrt(n_rc)
+
+(pnorm(100, 98, se_rc, lower.tail = FALSE))
+
+# If cars are typically rented 289 days out of the year and we consider the company's entire fleet, then 15% of vehicles were driven fewer than how many miles per day last year, on average?
+qnorm(.15, mu_rc, se_rc)
+
+# A typical U.S. driver puts approximately 13,500 miles on their personal vehicle each year. What is the probability that the total mileage (i.e., the sum of the daily mileage) for a car that was rented for a total of 289 days last year exceeds twice that amount?
+13500 * 2
+(mu_rc * n_rc)
+(se_rc * n_rc)
+
+(pnorm(27000, 28322, 867, lower.tail = FALSE))
+
+```
+
+
+# Tarantulas
+```{r}
+# What is the mean of the sampling distribution of \bar{x}, if data are in centimeters rather than millimeters?
+mu_t <- 18.14 / 10
+
+# What is the standard error of the sampling distribution of \bar{x}, if data are in centimeters rather than millimeters?
+sig_t <- 1.75 / 10
+n_t <- 25
+se_t <- sig_t / sqrt(n_t)
+
+# What is the probability that the 25 sampled tarantulas have a mean carapace length of more than 1.86 cm?
+pnorm(1.86, mu_t, se_t, lower.tail = FALSE)
+```
+
+
+# Voltage
+```{r}
+# What is E(Total Voltage)?
+(muv <- 4 * 1.5)
+
+# What is Var(Total Voltage)?
+(varv <- (0.2^2) * 4)
+```
+
+
+# Resistors
+```{r}
+# What is the probability that the resistance in the circuit is more than 11 ohm away from its expected value?
+m <- 100
+sig_r <- sqrt(2.89)
+s <- sig_r / sqrt(5)
+
+(pnorm(111, 100, sig_r, lower.tail = FALSE))
+
+```
+
