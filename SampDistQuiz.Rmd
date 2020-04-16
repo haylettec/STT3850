@@ -25,7 +25,7 @@ se <- 24 / sqrt(n)
 # sqrt(n) = 10
 # sqrt(n)^2 = 10^2
 # n = 100
-(24 / 2.34)^2 # less than 2.4
+(24 / 2.39)^2 # less than 2.4
 
 
 
@@ -85,7 +85,7 @@ se_p <- se_a * 40
 mu_rc <- 98
 sig_rc <- 51
 
-(pnorm(-1, 98, 51))
+(pnorm(-4, 98, 51))
 
 # What is the probability that the average daily mileage for a car that was rented for 289 days last year exceeds 100 miles?
 mu_rc <- 98
@@ -140,7 +140,7 @@ m <- 100
 sig_r <- sqrt(2.89)
 s <- sig_r / sqrt(5)
 
-(pnorm(111, 100, sig_r, lower.tail = FALSE))
+(pnorm(111, 100, s, lower.tail = FALSE))
 
 ```
 
