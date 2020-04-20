@@ -1,0 +1,119 @@
+---
+title: "Think-Pair-Share: Traditional Two-Sample t-Test"
+author: "Elise Haylett"
+date: "4/19/2020"
+output: html_document
+---
+
+```{r globaloptions, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = NA)
+```
+
+```{r loading packages and data files}
+library(infer)
+library(tidyverse)
+```
+
+```{r loading Semmelweiss data}
+data <- "https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/semmelweisannualbyclinic.csv"
+by_clinic <- read_csv(file = url(data)) %>% 
+  mutate(mortality = 100 * deaths / births)
+
+glimpse(by_clinic)
+head(by_clinic)
+
+handwashing_start <- as.Date("1847-06-01")
+data <- "https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/semmelweismonthly.csv"
+by_month <- read_csv(file = url(data)) %>% 
+  mutate(mortality = 100 * deaths / births,
+         handwashing = ifelse(date < handwashing_start, "dirty", "washed"))
+
+glimpse(by_month)
+head(by_month)
+```
+
+Consider the Semmelweiss activity from Week 1.  Conduct a traditional t-test to determine whether the average mortality for Clinic 1 was statistically significantly greater than the average mortality for Clinic 2 between 1841 and 1846 (one-tailed test). Report the test statistic (t) and the p-value. Were all of the necessary assumptions met here?
+
+$$H_0: \mu_1 = \mu_2$$
+$$H_A: \mu_1 > \mu_2$$
+Using t-test function
+```{r}
+ggplot(by_clinic, aes(x = clinic, y = mortality)) +
+ geom_boxplot()
+
+ggplot(by_clinic, aes(sample = mortality)) +
+  geom_qq() +
+  geom_qq_line() +
+  facet_grid(. ~ clinic)
+
+t.test(mortality ~ clinic, data = by_clinic, alternative = "greater")
+```
+
+Using infer
+```{r}
+mortality <- by_clinic %>% 
+  group_by(clinic) %>% 
+  summarize(n = n(),
+            average = mean(mortality))
+
+diff_mortality <- diff(mortality$average)
+
+
+n_replicates <- 1000
+diff_mean_mortality <- by_clinic %>%
+  specify(mortality ~ clinic) %>% 
+  hypothesize(null = "independence") %>%  
+  generate(reps = n_replicates, type = "permute") %>% 
+  calculate(stat = "diff in means", order = c("clinic 1", "clinic 2"))
+  
+diff_mean_mortality %>%
+  filter(stat <= diff_mortality ) %>%
+  summarize(p_val = n() / n_replicates)
+
+```
+
+
+
+
+
+
+Consider the Semmelweiss activity from Week 1. Conduct a traditional t-test to determine whether average mortality statistically significantly decreased after the introduction of handwashing in May 1847 (one-tailed test). Report the test statistic (t) and the p-value. Were all of the necessary assumptions met here?
+
+$$H_0: \mu_{dirty} = \mu_{washed}$$
+$$H_A: \mu_{dirty} > \mu_{washed}$$
+```{r}
+ggplot(by_month, aes(x = handwashing, y = mortality)) +
+ geom_boxplot()
+
+ggplot(by_month, aes(sample = mortality)) +
+  geom_qq() +
+  geom_qq_line() +
+  facet_grid(. ~ handwashing)
+
+handwashing <- by_month %>% 
+  group_by(handwashing) %>% 
+  summarize(n = n(),
+            average = mean(mortality))
+
+diff_handwashing <- diff(handwashing$average) # washed - dirty
+```
+
+Using t-test function
+```{r}
+t.test(mortality ~ handwashing, data = by_month, alternative = "greater")
+```
+
+Using infer
+```{r}
+n_replicates <- 1000
+diff_mean_mortality <- by_month %>%
+  specify(mortality ~ handwashing) %>% 
+  hypothesize(null = "independence") %>%  
+  generate(reps = n_replicates, type = "permute") %>% 
+  calculate(stat = "diff in means", order = c("dirty", "washed"))
+  
+diff_mean_mortality %>%
+  filter(stat <= diff_handwashing ) %>%
+  summarize(p_val = n() / n_replicates)
+
+```
