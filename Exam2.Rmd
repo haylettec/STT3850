@@ -1,0 +1,240 @@
+---
+title: "Exam 2: Programming Component"
+author: "Elise Haylett | 900664128"
+date: '`r format(Sys.time(), "%A, %B %d, %Y @ %I:%M %p")`'
+output: 
+  html_document: 
+    theme: yeti
+    highlight: textmate
+---
+
+<hr>
+
+```{r globaloptions, include = FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = NA)
+```
+
+Load all packages and datasets you used here.
+
+```{r loadpackages&data}
+library(tidyverse)
+library(infer)
+draft <- read_csv(file = url("https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/vietnamdraft.csv"))
+
+```
+
+**Note:** You should be using `tidyverse` functions whenever possible for manipulating and summarizing data and for making plots. Except for plots used specifically to assess normality, your plots should have appropriate titles and axis labels (e.g., not the default variable names). For simulation-based hypothesis tests, you may use the `infer` package or the algorithms from MSRR. If you have a partial code attempt that prevents your Markdown from compiling to HTML, comment out the code so `R` will not try to compile it but I can still see your efforts.  
+
+For all hypothesis tests, you should include:
+
+* null and alternative hypotheses
+* the value of the test statistic
+* the p-value for the test statistic
+* whether you rejected the null hypothesis
+* your conclusions based on the test results
+
+***
+### Problem 1
+
+#### Background
+
+In December 1969, the U.S. Selective Service System conducted a lottery to a create a "random"
+draft order for eligible men in the upcoming year 1970. Read the [dataset description](https://stat-jet-asu.github.io/Datasets/InstructorDescriptions/vietnamdraft.html) for the Vietnam Draft [dataset](https://raw.githubusercontent.com/STAT-JET-ASU/Datasets/master/Instructor/vietnamdraft.csv) that contains the results of this and subsequent Vietnam lotteries, including the linked New York Times article "Statisticians Charge Draft Lottery Was Not Random" to learn about how the lottery was conducted.
+
+Statistically speaking, the draft numbers for 1970 were drawn without replacement from the integer set $x = \{1, 2, 3, ..., 366\}$. The probability of drawing any draft number remaining in the pool at each step of the process was believed to be equal for all numbers, which would mean that all possible permutations of the 366 integers were equally likely---a fair process. It is impossible to prove whether the selection process was biased (non-random), but we can explore whether the outcome for 1970 seems to be consistent with randomness.
+
+For draft year 1970, men whose birthdays were assigned draft numbers 1 through 195 were called up for processing and potential induction into military service.
+
+
+#### Your Analyses
+
+A) Use `glimpse()` to visualize the structure of the dataset.
+
+```{r}
+glimpse(draft)
+```
+
+B) For draft year 1970, summarize sample size, mean, and median for the draft numbers in each half of the year. Also calculate the proportion of draft numbers that were called up for processing/induction in each half of the year. 
+
+```{r}
+draft <- draft %>% 
+  filter(draftyear == 1970) %>% 
+  mutate(drafted = ifelse(draftnumber <= 195, "yes", "no"))
+
+
+draft %>% 
+  group_by(halfyear) %>% 
+  summarize(n = n(),
+            mean = mean(draftnumber),
+            median = median(draftnumber),
+            proportion = mean(drafted == "yes"))
+```
+
+C) Conduct a permutation resampling test to determine whether the proportion of birthdays drafted in the second half of the year was greater than the proportion of birthdays drafted in the first half of the year.
+
+$$H_0: \widehat{p}_{first} = \widehat{p}_{second}$$
+$$H_0: \widehat{p}_{first} < \widehat{p}_{second}$$
+```{r warning=FALSE, message=FALSE}
+vietnamdraft <- draft %>%
+  specify(drafted ~ halfyear, success = "yes") %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "diff in props", order = c("first", "second"))
+
+obs_diff <- draft %>%
+  specify(drafted ~ halfyear, success = "yes") %>%
+  calculate(stat = "diff in props", order = c("first", "second"))
+
+pvalue_vprop <- vietnamdraft %>% 
+  get_p_value(obs_stat = obs_diff, direction = "less")
+
+
+sprintf("The test statistic is %1.4f", obs_diff)
+sprintf("The p-value for Ho: phatFirst = phatSecond vs. Ha: phatFirst < phatSecond is %1.3f.", pvalue_vprop)
+ifelse(pvalue_vprop <= .05, sprintf("Reject Ho"), sprintf("Fail to reject Ho"))
+```
+
+D) If your Banner ID ends with an ODD number, conduct a permutation resampling test to determine whether the mean draft number in the first half of the year is greater than the mean draft number in the second half of the year. If your Banner ID ends with an EVEN number, conduct a permutation resampling test to determine whether the median draft number in the first half of the year is greater than the median draft number in the second half of the year. Use the symbol $\theta$ for median in your hypotheses.
+$$H_0: \theta_{first} = \theta_{second}$$
+$$H_0: \theta_{first} > \theta_{second}$$
+```{r warning=FALSE, message=FALSE}
+vietnamdraft_med <- draft %>%
+  specify(draftnumber ~ halfyear) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "diff in medians", order = c("first", "second"))
+
+obs_diff_med <- draft %>%
+  specify(draftnumber ~ halfyear) %>%
+  calculate(stat = "diff in medians", order = c("first", "second"))
+
+pvalue_vietnam <- vietnamdraft %>% 
+  get_p_value(obs_stat = obs_diff_med, direction = "greater")
+
+
+sprintf("The test statistic is %1.1f", obs_diff_med)
+sprintf("The p-value for Ho: median(First) = median(Second) vs. Ha: median(First) > median(Second) is %1.5f.", pvalue_vietnam)
+ifelse(pvalue_vietnam <= .05, sprintf("Reject Ho"), sprintf("Fail to reject Ho"))
+```
+
+E) Based on your tests, is the outcome of the draft consistent with randomness or does the selection process appear to have been biased against those born in a one half of the year? Support your answer using your test results.
+
+**ANSWER:** Based on the results of the tests, there is reason to conclude that the outcome of the draft is not consistent with randomness. For the first test, the p-value was 0.000 indicating that there was evidence to conclude that the proportion of men drafted in the second half of the year was greater than the proportion of men drafted in the first half of the year. For the second test, the p-value was 0.000 indicating that there was evidence to conclude that the median draft numbers in the first half of the year was greater than the second half. The results of the two tests are consistent with one another. The proportion of men drafted in the second half of the year (because they had values ranging from 1 - 195) is higher and an indication of that is the lower median draft numbers of the second half of the year.
+
+***
+### Problem 2
+
+In a Zener card test for psychic ability, a person tries to guess the hidden symbols on cards that are presented to them one at a time. The cards are drawn with replacement from a deck containing five symbols in equal proprotions: square, circle, star, cross, and waves. In the online test found [HERE](https://www.psychic-experiences.com/psychic-tests/zener-cards.php), getting 10 or more correct on 25 guesses is considered evidence of psychic ability. It is possible to get 10 or more cards correct by just guessing, but is it probable? Let X be a random variable representing the number of correct answers, which serves as the test statistic for the following hypotheses.
+
+$$H_0: \text{the person is just randomly guessing cards}$$
+
+$$H_A: \text{the person is psychic (better than guessing)}$$
+
+(A) What are E(X) and Var(X)?
+
+```{r}
+p <- .20
+n <- 25
+mu <- n * p
+variance <- n * p * (1 - p)
+s <- sqrt(variance)
+
+sprintf("E(X) = %1.0f", mu)
+sprintf("Var(X) = %1.0f", variance)
+```
+
+(B) If someone is purely randomly guessing each time, what is the probability they get 10 or more cards correct out of 25? Use an exact binomial calculation.
+
+```{r}
+pbinom(9, 25, .2, lower.tail = FALSE) 
+```
+
+(C) Compute the probability of someone getting 10 or more cards correct out of 25 by purely guessing, this time using a normal approximation to the binomial. 
+
+```{r}
+pnorm(10, mu, s, lower.tail = FALSE)
+```
+
+(D) Suppose the number of trials in the test was increased to 100 instead of 25. If we want the threshold for determining psychic ability to be as close as possible to (B), in terms of probability, how many correct guesses out of 100 would be the minimum number considered as evidence of psychic ability? 
+
+```{r}
+qbinom(.01733187, 100, .20, lower.tail = FALSE)
+
+mu100 <- 100 * p
+s100 <- sqrt(100 * p * (1 - p))
+
+qnorm(.01733187, mu100, s100, lower.tail = FALSE)
+```
+
+***
+### Problem 3
+
+Plywood boards are made by gluing together several very thin sheets of wood veneer with the wood grain offset by ninety degrees in alternating sheets. That makes the resulting product very strong. A company manufactures half-inch plywood boards (i.e., they are supposed to be half an inch thick) by layering five veneer sheets with individual thicknesses that are normally distributed with a mean of 0.1 inches and a SD of 0.005 inches. 
+
+If the sheets are randomly and independently selected during the assembly process and the glue itself adds negligible thickness because of the pressure applied during the layering process, then total thickness is a random variable expressed by the equation Total Thickness = Thickness 1 + Thickness 2 + Thickness 3 + Thickness 4 + Thickness 5.
+
+*Reminder: Do not use T as a variable name; that is a reserved value for TRUE in R.*
+
+A) Determine analytically (i.e., using theory and mathematics) the expected value and standard deviation of the distribution of total thickness. 
+
+```{r}
+avg <- 5 * .10
+var <- 5 * .000025
+sd <- sqrt(var)
+
+  
+sprintf("E(X) = %1.1f", avg)
+sprintf("SD(X) = %1.5f", sd)
+```
+
+B) Simulate the manufacture of 10,000 plywood boards by simulating the thickness of each of the component veneer sheets (Thickness 1, Thickness 2, etc.) and combining them, as would happen during the physical manufacturing process. Use the results to estimate the expected value and standard deviation of the distribution of total thickness.
+
+```{r}
+# pulling 5 random sheets
+sim <- 10000
+boards_sim <- numeric(sim)
+
+for (i in 1:sim) {
+  boards <- sum(rnorm(5, 0.1, .005))
+  boards_sim[i] <- boards
+}
+
+board_avg <- mean(boards_sim)
+board_sd <- sd(boards_sim)
+
+sprintf("E(X) of the distribution of total thickness = %1.5f", board_avg)
+sprintf("SD(X) of the distribution of total thickness = %1.5f", board_sd)
+```
+
+C) Suppose the manufacturing specifications say that the finished product should be between 0.47 and 0.53 inches. Find the probabilty that a finished board falls outside these specifications using both the theoretical results in (A) and the simulated boards in (B).
+
+```{r}
+# theoretical
+pnorm(.53, avg, sd, lower.tail = FALSE) + pnorm(.47, avg, sd)
+
+# simulation
+pnorm(.53, board_avg, board_sd, lower.tail = FALSE) + pnorm(.47, board_avg, board_sd)
+```
+
+D) A quality control inspector measures a sample of 100 finished boards daily to check whether or not the assembly machine is applying enough pressure during the process. If not, boards tend to be too thick on average because the glue layers are not sufficiently compressed. Determine the mean and standard error of $\bar{X}$ either theoretically or via simulation.
+
+```{r}
+# n = 100
+avg
+sd_100 <- sd / sqrt(100)
+
+sprintf("E(X) of the sampling distribution = %1.5f", avg)
+sprintf("SD(X) of the sampling distribution = %1.5f", sd_100)
+```
+
+E) The inspector does not want to shut down the assembly machine unnecessarily when it's actually behaving as it should. He sets $\alpha$ = 0.05 as an acceptable chance of making a mistake. What value is the cutoff for the top 5% of the distribution. Solve this using the same method you did in (D), either theoretically or using the results of your simulation.
+
+```{r}
+qnorm(.95, avg, sd_100)
+```
+
+
+***
+```{r}
+sessionInfo()
+```
